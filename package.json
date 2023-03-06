@@ -2,5 +2,23 @@
   "dependencies": {
     "express": "^4.18.2",
     "node": "^19.6.1"
-  }
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "name": "security-example",
+  "version": "1.0.0",
+  "main": "server.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davideperez/security-example.git"
+  },
+  "author": "David",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/davideperez/security-example/issues"
+  },
+  "homepage": "https://github.com/davideperez/security-example#readme",
+  "description": ""
 }
