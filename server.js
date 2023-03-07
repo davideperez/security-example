@@ -3,27 +3,46 @@ const path = require('path');
 const https = require('https')
 const helmet = require('helmet')
 const express = require('express');
+const passport = require('passport')
+const { Strategy } = require( 'passport-google-oauth20')
 
 require('dotenv').config();
 
+//////////////
+// APP SETUP
+//////////////
 const PORT = 3000;
 
 const config = {
     CLIENT_ID: process.env.CLIENT_ID,
     CLIENT_SECRET: process.env.CLIENT_SECRET,
+};
+
+const AUTH_OPTIONS = {
+    callbackURL: '/auth/google/callback',
+    client_id: config.CLIENT_ID,
+    client_secret: config.CLIENT_SECRET
+};
+
+function verifyCallback(accessToken, refreshToken, profile, done) {
+    console.log('Google profile', profile);
+    done(null, profile);
 }
 
-//////////////////
-// App creation
-//////////////////
+passport.use(new Strategy({AUTH_OPTIONS, verifyCallback }));
 
+// App Creation
 const app = express();
 
-////////////////////////////////////////////////////////////////////////////////////////
+//////////////
+// MIDDLEWARE
+//////////////
+
 // Calling the Helmet middleware. It is important to call it before any of our routes
 ////////////////////////////////////////////////////////////////////////////////////////
 
 app.use(helmet())
+app.use(passport.initialize());
 
 // This is in case we want to restrict access to all of our application.
 /* app.use((req, res, next) => {
@@ -47,7 +66,6 @@ function checkLoggedIn (req, res, next) {
     }
     next();
 }
-
 
 /////////////////////////
 // Endpoints and Routes
