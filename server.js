@@ -1,19 +1,77 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https')
+const helmet = require('helmet')
 const express = require('express');
+
+require('dotenv').config();
 
 const PORT = 3000;
 
+const config = {
+    CLIENT_ID: process.env.CLIENT_ID,
+    CLIENT_SECRET: process.env.CLIENT_SECRET,
+}
+
+//////////////////
+// App creation
+//////////////////
+
 const app = express();
 
-app.get('/secret', (req, res) => {
+////////////////////////////////////////////////////////////////////////////////////////
+// Calling the Helmet middleware. It is important to call it before any of our routes
+////////////////////////////////////////////////////////////////////////////////////////
+
+app.use(helmet())
+
+// This is in case we want to restrict access to all of our application.
+/* app.use((req, res, next) => {
+    const isLoggedIn = true; //TODO
+    if(!isLoggedIn) {
+        return res.status(401).json({
+            error: 'You must log in!'
+        })
+    }
+
+    next();
+})
+ */
+
+function checkLoggedIn (req, res, next) {
+    const isLoggedIn = true; //TODO
+    if(!isLoggedIn) {
+        return res.status(401).json({
+            error: 'You must log in!'
+        })
+    }
+    next();
+}
+
+
+/////////////////////////
+// Endpoints and Routes
+/////////////////////////
+
+app.get('/auth/google', (req, res ) => {})
+
+//this is so google auth server has something to callback, to send the token to our app.
+
+app.get('/auth/google/callback', (req, res ) => {})
+
+app.get('/auth/logout', (req, res ) => {})
+
+app.get('/secret', checkLoggedIn,(req, res) => { //in express you could add the amount of middleware you want on each endpoint/route
     return res.send('Your personal secret value is 42!')
 })
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'))
 });
+
+///////////////////
+// Server creation
+///////////////////
 
 // on terminal input the following:
 // openssl req -x509 -newkey rsa:4096 -nodes -keyout -key.pem -out cert.pem -days 365  
