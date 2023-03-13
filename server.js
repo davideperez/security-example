@@ -4,6 +4,7 @@ const https = require('https')
 const helmet = require('helmet')
 const express = require('express');
 const passport = require('passport')
+const cookieSession = require('cookie-session')
 const { Strategy } = require( 'passport-google-oauth20')
 
 require('dotenv').config();
@@ -16,12 +17,14 @@ const PORT = 3000;
 const config = {
     CLIENT_ID: process.env.CLIENT_ID,
     CLIENT_SECRET: process.env.CLIENT_SECRET,
+    COOKIE_KEY_1: process.env.COOKIE_KEY_1,
+    COOKIE_KEY_2: process.env.COOKIE_KEY_2,
 };
 
 const AUTH_OPTIONS = {
     callbackURL: '/auth/google/callback',
-    client_id: config.CLIENT_ID,
-    client_secret: config.CLIENT_SECRET
+    clientID: config.CLIENT_ID,
+    clientSecret: config.CLIENT_SECRET
 };
 
 function verifyCallback(accessToken, refreshToken, profile, done) {
@@ -29,7 +32,7 @@ function verifyCallback(accessToken, refreshToken, profile, done) {
     done(null, profile);
 }
 
-passport.use(new Strategy({AUTH_OPTIONS, verifyCallback }));
+passport.use(new Strategy(AUTH_OPTIONS, verifyCallback ));
 
 // App Creation
 const app = express();
@@ -39,12 +42,16 @@ const app = express();
 //////////////
 
 // Calling the Helmet middleware. It is important to call it before any of our routes
-////////////////////////////////////////////////////////////////////////////////////////
 
-app.use(helmet())
+app.use(helmet());
+app.use(cookieSession({
+    name:'session',
+    maxAge: 24 * 60 * 60 * 1000,
+    keys: [ config.COOKIE_KEY_1, config.COOKIE_KEY_2 ] // the list of secret values
+}));
 app.use(passport.initialize());
 
-// This is in case we want to restrict access to all of our application.
+// This is how it would look if we want to restrict access to all of our application.
 /* app.use((req, res, next) => {
     const isLoggedIn = true; //TODO
     if(!isLoggedIn) {
@@ -52,7 +59,6 @@ app.use(passport.initialize());
             error: 'You must log in!'
         })
     }
-
     next();
 })
  */
@@ -71,11 +77,27 @@ function checkLoggedIn (req, res, next) {
 // Endpoints and Routes
 /////////////////////////
 
-app.get('/auth/google', (req, res ) => {})
+app.get('/auth/google',
+    passport.authenticate('google', {
+        scope: ['email'],
+}));
 
 //this is so google auth server has something to callback, to send the token to our app.
 
-app.get('/auth/google/callback', (req, res ) => {})
+app.get('/auth/google/callback', 
+    passport.authenticate('google', {
+        failureRedirect: '/failure',
+        successRedirect: '/',
+        session: false,
+    }), 
+    (req, res) => {
+      console.log('Google called us back!')// res.redirect() could be used here instead of using the passport methods above.
+    }
+);
+
+app.get('/failure', (req, res) => {
+    return res.send('Failed to log in!')
+});
 
 app.get('/auth/logout', (req, res ) => {})
 
