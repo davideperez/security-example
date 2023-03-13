@@ -86,8 +86,9 @@ app.use(passport.session())
 })
  */
 
-function checkLoggedIn (req, res, next) { //req.user
-    const isLoggedIn = true; //TODO
+function checkLoggedIn (req, res, next) {
+    console.log('Current user is:', req.user)
+    const isLoggedIn = req.isAuthenticated() && req.user; //req.isAuthenticated is a passport function that validates the google OAuth user.
     if(!isLoggedIn) {
         return res.status(401).json({
             error: 'You must log in!'
@@ -114,15 +115,18 @@ app.get('/auth/google/callback',
         session: true,
     }), 
     (req, res) => {
-      console.log('Google called us back!')// res.redirect() could be used here instead of using the passport methods above.
+      console.log('Google called us back!');// res.redirect() could be used here instead of using the passport methods above.
     }
 );
 
 app.get('/failure', (req, res) => {
-    return res.send('Failed to log in!')
+    return res.send('Failed to log in!');
 });
 
-app.get('/auth/logout', (req, res ) => {})
+app.get('/auth/logout', (req, res ) => {
+    req.logout(); // it will clear any logged in session and removes req.user
+    return res.redirect('/')
+})
 
 app.get('/secret', checkLoggedIn,(req, res) => { //in express you could add the amount of middleware you want on each endpoint/route
     return res.send('Your personal secret value is 42!')
