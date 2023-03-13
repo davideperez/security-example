@@ -37,12 +37,15 @@ passport.use(new Strategy(AUTH_OPTIONS, verifyCallback )); // que hacia???
 
 //Save the user info to the session (the session that it was settled in our cookie) 
 passport.serializeUser((user, done) => {
-    done(null, user) // user have the profile info sent by google. 
+    done(null, user.id) // user have the profile info sent by google. 
 })
 
 //Reads the user info from the session  (the session that it was settled in our cookie)  (loading it from it)
-passport.deserializeUser((obj, done) => {
-    done(null, obj)
+passport.deserializeUser((id, done) => {
+/*     User.findById(id).then(user => {
+        done(null,user)
+    }) */
+    done(null, id)
 })
 
 // App Creation
