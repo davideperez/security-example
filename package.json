@@ -5,7 +5,7 @@
     "express": "^4.18.2",
     "helmet": "^6.0.1",
     "node": "^19.6.1",
-    "passport": "^0.6.0",
+    "passport": "^0.5.3",
     "passport-google-oauth20": "^2.0.0"
   },
   "scripts": {

@@ -32,7 +32,18 @@ function verifyCallback(accessToken, refreshToken, profile, done) {
     done(null, profile);
 }
 
-passport.use(new Strategy(AUTH_OPTIONS, verifyCallback ));
+
+passport.use(new Strategy(AUTH_OPTIONS, verifyCallback )); // que hacia???
+
+//Save the user info to the session (the session that it was settled in our cookie) 
+passport.serializeUser((user, done) => {
+    done(null, user) // user have the profile info sent by google. 
+})
+
+//Reads the user info from the session  (the session that it was settled in our cookie)  (loading it from it)
+passport.deserializeUser((obj, done) => {
+    done(null, obj)
+})
 
 // App Creation
 const app = express();
@@ -44,12 +55,21 @@ const app = express();
 // Calling the Helmet middleware. It is important to call it before any of our routes
 
 app.use(helmet());
+
+//Saves the cookie to the browser
 app.use(cookieSession({
     name:'session',
     maxAge: 24 * 60 * 60 * 1000,
     keys: [ config.COOKIE_KEY_1, config.COOKIE_KEY_2 ] // the list of secret values
 }));
 app.use(passport.initialize());
+
+// This is so Passport understand our cookie session, and the req.user object that is set by our
+// cookieSession middleware. It authenticates the session that is being sent to our server.
+// It uses the keys in cookieSessions to validate that everything is signed as it should be.
+// and it sets the value in of the req.user to contain the user's identity. It does it by calling
+// deserializeUser() which, in turn, sets req.user to use it in any of our express middleware.
+app.use(passport.session())
 
 // This is how it would look if we want to restrict access to all of our application.
 /* app.use((req, res, next) => {
@@ -63,7 +83,7 @@ app.use(passport.initialize());
 })
  */
 
-function checkLoggedIn (req, res, next) {
+function checkLoggedIn (req, res, next) { //req.user
     const isLoggedIn = true; //TODO
     if(!isLoggedIn) {
         return res.status(401).json({
@@ -88,7 +108,7 @@ app.get('/auth/google/callback',
     passport.authenticate('google', {
         failureRedirect: '/failure',
         successRedirect: '/',
-        session: false,
+        session: true,
     }), 
     (req, res) => {
       console.log('Google called us back!')// res.redirect() could be used here instead of using the passport methods above.
